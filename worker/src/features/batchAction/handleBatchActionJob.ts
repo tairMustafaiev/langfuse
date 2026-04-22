@@ -364,33 +364,13 @@ export const handleBatchActionJob = async (
         ? await getEventsStreamForDataset(streamParams)
         : await getObservationStream(streamParams);
 
-    // Collect all observations
-    const observations: Array<{
-      id: string;
-      traceId: string;
-      input: unknown;
-      output: unknown;
-      metadata: unknown;
-    }> = [];
-
-    for await (const record of dbReadStream) {
-      if (record?.id) {
-        observations.push({
-          id: record.id,
-          traceId: record.traceId,
-          input: record.input,
-          output: record.output,
-          metadata: record.metadata,
-        });
-      }
-    }
-
-    // Process observations and add to dataset
+    // Stream observations directly to avoid accumulating the full result set
+    // in memory (OOM risk for large selections with multi-KB payloads).
     await processAddObservationsToDataset({
       projectId,
       batchActionId: batchActionId as string,
       config: parsedConfig,
-      observations,
+      observationStream: dbReadStream,
     });
   } else if (actionId === "observation-run-batched-evaluation") {
     const { projectId, query, cutoffCreatedAt, evaluatorIds, batchActionId } =

@@ -673,7 +673,7 @@ export const getObservationIdentifiers = async (opts: {
     FROM observations o
     WHERE ${appliedFilter.query}
     ${search.query}
-    ORDER BY o.start_time DESC, o.id
+    ORDER BY o.event_ts DESC
     ${skipDedup ? "" : "LIMIT 1 BY o.id, o.project_id"}
     ${limit !== undefined && offset !== undefined ? `LIMIT ${limit} OFFSET ${offset}` : ""}`;
 
